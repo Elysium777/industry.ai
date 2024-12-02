@@ -40,13 +40,13 @@ const Notification = ({ message, timestamp, characterName, eventName, metadata }
     const getCharacterNameClass = (name: string) => {
         const lowerName = name.toLowerCase();
         switch (lowerName) {
-            case 'eric':
+            case 'satan':
                 return 'text-green-500';
-            case 'harper':
+            case 'jacob':
                 return 'text-purple-500';
-            case 'rishi':
+            case 'osaka':
                 return 'text-amber-500';
-            case 'yasmin':
+            case 'winky':
                 return 'text-rose-500';
             default:
                 return 'text-black';
@@ -56,13 +56,13 @@ const Notification = ({ message, timestamp, characterName, eventName, metadata }
     const getBackgroundClass = (name: string) => {
         const lowerName = name.toLowerCase();
         switch (lowerName) {
-            case 'eric':
+            case 'satan':
                 return 'bg-green-50';
-            case 'harper':
+            case 'jacob':
                 return 'bg-purple-50';
-            case 'rishi':
+            case 'osaka':
                 return 'bg-amber-50';
-            case 'yasmin':
+            case 'winky':
                 return 'bg-rose-50';
             default:
                 return 'bg-card';
@@ -72,13 +72,13 @@ const Notification = ({ message, timestamp, characterName, eventName, metadata }
     const getBorderClass = (name: string) => {
         const lowerName = name.toLowerCase();
         switch (lowerName) {
-            case 'eric':
+            case 'satan':
                 return 'border-green-100';
-            case 'harper':
+            case 'jacob':
                 return 'border-purple-100';
-            case 'rishi':
+            case 'osaka':
                 return 'border-amber-100';
-            case 'yasmin':
+            case 'winky':
                 return 'border-rose-100';
             default:
                 return 'border-gray-100';

@@ -22,28 +22,34 @@ type Category = {
 const CHARACTER_PRESETS = [
     {
         id: 0,
-        name: 'Rishi',
-        skills: ['cdp', 'zora', 'ens'],
-        prompt: 'I am Rishi, a blockchain expert specializing in DeFi protocols and NFT marketplaces.'
-    },
-    {
-        id: 1,
-        name: 'Harper',
+        name: 'Jacob',
         skills: ['uniswap', 'base', 'scroll'],
         prompt: 'I am Harper, focusing on Layer 2 solutions and DEX implementations.'
     },
     {
-        id: 2,
-        name: 'Eric',
+        id: 1,
+        name: 'Osaka',
         skills: ['tradingview'],
-        prompt: 'I am Eric, a technical analyst with expertise in market trends and trading strategies.'
+        prompt: 'I am Micro, a technical analyst with expertise in market trends and trading strategies.'
+    },
+    {
+        id: 2,
+        name: 'Satan',
+        skills: ['cdp', 'zora', 'ens'],
+        prompt: 'I am Rishi, a blockchain expert specializing in DeFi protocols and NFT marketplaces.'
     },
     {
         id: 3,
-        name: 'Yasmin',
+        name: 'Winky',
         skills: ['twitter', 'grok'],
         prompt: 'I am Yasmin, an AI and social media specialist tracking Web3 trends.'
-    }
+    },
+    {
+        id: 4,
+        name: 'Mirco',
+        skills: ['tradingview'],
+        prompt: 'I am Eric, a technical analyst with expertise in market trends and trading strategies.'
+    },
 ]
 
 function StyleSelector({

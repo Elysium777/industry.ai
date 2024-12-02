@@ -17,8 +17,7 @@ import {
     MAP_OFFSET_X,
     MAP_OFFSET_Y,
     PLAYER_MOVE_SPEED,
-    SCALE_FACTOR,
-    SPRITE_SIZE,
+    SCALE_FACTOR, SPRITE_HEIGHT, SPRITE_WIDTH,
     WALKABLE_AREAS
 } from '@/utils/properties';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -84,8 +83,8 @@ function checkCharacterCollision(
     newY: number
 ): boolean {
     // Increase collision box to 95% of character size (up from 90%)
-    const width = SPRITE_SIZE * SCALE_FACTOR * 0.95;
-    const height = SPRITE_SIZE * SCALE_FACTOR * 0.95;
+    const width = SPRITE_WIDTH * SCALE_FACTOR * 0.95;
+    const height = SPRITE_HEIGHT * SCALE_FACTOR * 0.95;
 
     const newBounds = {
         x: newX * SCALE_FACTOR + MAP_OFFSET_X,
@@ -122,15 +121,16 @@ function checkCharacterCollision(
 function isWithinCanvasBounds(x: number, y: number): boolean {
     const scaledX = x * SCALE_FACTOR + MAP_OFFSET_X;
     const scaledY = y * SCALE_FACTOR + MAP_OFFSET_Y;
-    const characterSize = SPRITE_SIZE * SCALE_FACTOR;
+    const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
+    const characterHeight = SPRITE_HEIGHT * SCALE_FACTOR;
     const buffer = 50; // 50px buffer from edges
 
     return (
         scaledX >= buffer &&
-        scaledX + characterSize <= CANVAS_WIDTH - buffer &&
+        scaledX + characterWidth <= CANVAS_WIDTH - buffer &&
         scaledY >= buffer &&
-        scaledY + characterSize <= CANVAS_HEIGHT - buffer
-    );
+        scaledY + characterHeight <= CANVAS_HEIGHT - buffer
+    )
 }
 
 const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string }) => {
@@ -325,8 +325,8 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
             const characterX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X;
             const characterY = playerState.y * SCALE_FACTOR + MAP_OFFSET_Y;
-            const characterWidth = SPRITE_SIZE * SCALE_FACTOR;
-            const characterHeight = SPRITE_SIZE * SCALE_FACTOR;
+            const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
+            const characterHeight = SPRITE_HEIGHT * SCALE_FACTOR;
 
             // Draw the name above the character if hovered
             if (isHoveredIndex === index && !isInputActive) {
@@ -356,8 +356,8 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
         if (DEBUG_CHARACTER_SELECT_BOXES && ctx) {
             // Draw collision boxes for all characters
             playerStates.forEach(state => {
-                const width = SPRITE_SIZE * SCALE_FACTOR * 1.15;  // Match the new size
-                const height = SPRITE_SIZE * SCALE_FACTOR * 1.15;
+                const width = SPRITE_WIDTH * SCALE_FACTOR * 1.15;  // Match the new size
+                const height = SPRITE_HEIGHT * SCALE_FACTOR * 1.15;
                 const buffer = 14;  // Match the new buffer size
 
                 // Draw character's collision box
@@ -415,8 +415,8 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                 charactersRef.current = [
                     new Character(
                         0,
-                        'Eric',
-                        '/sprite_p1.png',
+                        'Jacob',
+                        '/characters.png',
                         () => {
                             if (mounted) drawGameRef.current();
                         },
@@ -431,8 +431,8 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                     ),
                     new Character(
                         1,
-                        'Harper',
-                        '/sprite_p2.png',
+                        'Osaka',
+                        '/characters.png',
                         () => {
                             if (mounted) drawGameRef.current();
                         },
@@ -447,8 +447,8 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                     ),
                     new Character(
                         2,
-                        'Rishi',
-                        '/sprite_p3.png',
+                        'Satan',
+                        '/characters.png',
                         () => {
                             if (mounted) drawGameRef.current();
                         },
@@ -463,8 +463,24 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                     ),
                     new Character(
                         3,
-                        'Yasmin',
-                        '/sprite_p4.png',
+                        'Winky',
+                        '/characters.png',
+                        () => {
+                            if (mounted) drawGameRef.current();
+                        },
+                        (index, message) => {
+                            handleCharacterMessageRef.current(index, message);
+                        },
+                        (index, error) => {
+                            handleCharacterErrorRef.current(index, error);
+                        },
+                        sessionId,
+                        userId
+                    ),
+                    new Character(
+                        4,
+                        'Mirco',
+                        '/characters.png',
                         () => {
                             if (mounted) drawGameRef.current();
                         },
@@ -498,7 +514,20 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
             // Initialize player states
             const initialPlayerStates: PlayerState[] = [
                 {
-                    x: 200,
+                    x: -400,
+                    y: 600,
+                    direction: 'down',
+                    isMoving: false,
+                    message: null,
+                    ai: {
+                        action: 'paused',
+                        actionEndTime:
+                            Date.now() +
+                            getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX),
+                    },
+                },
+                {
+                    x: 0,
                     y: 600,
                     direction: 'down',
                     isMoving: false,
@@ -524,7 +553,7 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                     },
                 },
                 {
-                    x: 600,
+                    x: 800,
                     y: 600,
                     direction: 'down',
                     isMoving: false,
@@ -537,7 +566,7 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                     },
                 },
                 {
-                    x: 800,
+                    x: 1200,
                     y: 600,
                     direction: 'down',
                     isMoving: false,
@@ -847,8 +876,8 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
         const characterX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X;
         const characterY = playerState.y * SCALE_FACTOR + MAP_OFFSET_Y;
-        const characterWidth = SPRITE_SIZE * SCALE_FACTOR;
-        const characterHeight = SPRITE_SIZE * SCALE_FACTOR;
+        const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
+        const characterHeight = SPRITE_HEIGHT * SCALE_FACTOR;
 
         return (
             x >= characterX &&
@@ -971,7 +1000,7 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
     const controlledCharacterY = controlledPlayerState
         ? controlledPlayerState.y * SCALE_FACTOR + MAP_OFFSET_Y
         : 0;
-    const characterWidth = SPRITE_SIZE * SCALE_FACTOR;
+    const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
 
     // Function to send a message to all characters
     const handleGlobalMessage = (message: string) => {

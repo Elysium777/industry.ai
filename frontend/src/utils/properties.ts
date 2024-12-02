@@ -1,5 +1,6 @@
 // Sprite and animation constants
-export const SPRITE_SIZE = 100; // Keep original sprite size
+export const SPRITE_WIDTH = 80; // Keep original sprite size
+export const SPRITE_HEIGHT = 170; // Keep original sprite size
 export const ANIMATION_FRAMES = 4;
 export const FRAME_DURATION = 200;
 
@@ -7,7 +8,7 @@ export const FRAME_DURATION = 200;
 export const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WSS_URL;
 
 // Map constants
-export const MAP_WIDTH = 1152;
+export const MAP_WIDTH = 768;
 export const MAP_HEIGHT = 1320;
 export const DEBUG_WALKABLE_AREAS = false;
 export const DEBUG_CHARACTER_SELECT_BOXES = false;
@@ -25,7 +26,7 @@ export const SCALE_FACTOR = typeof window !== 'undefined' ? Math.min(
 ) : 1;
 
 // Additional scaling factor just for characters
-export const CHARACTER_SCALE = 3.6; // 1.8 * 2 = 3.6
+export const CHARACTER_SCALE = 6; // 1.8 * 2 = 3.6
 
 export const SCALED_MAP_WIDTH = MAP_WIDTH * SCALE_FACTOR;
 export const SCALED_MAP_HEIGHT = MAP_HEIGHT * SCALE_FACTOR;

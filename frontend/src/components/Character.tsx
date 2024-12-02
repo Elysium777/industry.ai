@@ -1,6 +1,14 @@
 "use client"
 
-import { CHARACTER_SCALE, DIRECTION_ORDER, MAP_OFFSET_X, MAP_OFFSET_Y, SCALE_FACTOR, SPRITE_SIZE, WEBSOCKET_URL } from "@/utils/properties";
+import {
+    CHARACTER_SCALE,
+    DIRECTION_ORDER,
+    MAP_OFFSET_X,
+    MAP_OFFSET_Y,
+    SCALE_FACTOR, SPRITE_HEIGHT,
+    SPRITE_WIDTH,
+    WEBSOCKET_URL
+} from "@/utils/properties";
 
 interface CharacterBounds {
     x: number;
@@ -132,8 +140,10 @@ export class Character {
         if (!this.spriteLoaded || !this.sprite) return;
 
         const directionIndex = DIRECTION_ORDER.indexOf(direction);
-        const sourceX = directionIndex * SPRITE_SIZE;
-        const sourceY = isMoving ? animationFrame * SPRITE_SIZE : 0;
+        // + isMoving ? animationFrame * SPRITE_SIZE : 0
+        const animationFrameIdx = animationFrame % 2 ? Math.floor(animationFrame / 2) : 0;
+        const sourceX = 2 + directionIndex * 3 * SPRITE_WIDTH + (isMoving ? animationFrameIdx * SPRITE_WIDTH : 0);
+        const sourceY = this.index * SPRITE_HEIGHT;
 
         const scaledX = x * SCALE_FACTOR + MAP_OFFSET_X;
         const scaledY = y * SCALE_FACTOR + MAP_OFFSET_Y;
@@ -144,17 +154,17 @@ export class Character {
             this.sprite,
             sourceX,
             sourceY,
-            SPRITE_SIZE,
-            SPRITE_SIZE,
+            SPRITE_WIDTH,
+            SPRITE_HEIGHT,
             scaledX,
             scaledY,
-            SPRITE_SIZE * finalScale,
-            SPRITE_SIZE * finalScale
+            SPRITE_WIDTH * finalScale,
+            SPRITE_HEIGHT * finalScale
         );
 
         // Draw the speech bubble if there's a message
         if (message) {
-            const bubbleX = scaledX + (SPRITE_SIZE * finalScale) / 2;
+            const bubbleX = scaledX + (SPRITE_WIDTH * finalScale) / 2;
             const bubbleY = scaledY;
             this.drawSpeechBubble(ctx, bubbleX, bubbleY, message);
         }
@@ -238,7 +248,7 @@ export class Character {
         let tailPosition: 'top' | 'bottom' = 'bottom';
         if (bubbleY < margin) {
             // Place bubble below character if too high
-            bubbleY = y + SPRITE_SIZE * SCALE_FACTOR + tailHeight;
+            bubbleY = y + SPRITE_HEIGHT * SCALE_FACTOR + tailHeight;
             tailPosition = 'top';
         }
 
