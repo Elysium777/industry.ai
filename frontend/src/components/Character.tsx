@@ -145,10 +145,15 @@ export class Character {
         const sourceX = 2 + directionIndex * 3 * SPRITE_WIDTH + (isMoving ? animationFrameIdx * SPRITE_WIDTH : 0);
         const sourceY = this.index * SPRITE_HEIGHT;
 
-        const scaledX = x * SCALE_FACTOR + MAP_OFFSET_X;
-        const scaledY = y * SCALE_FACTOR + MAP_OFFSET_Y;
-
         const finalScale = SCALE_FACTOR * CHARACTER_SCALE;
+
+        const scaledX = x * SCALE_FACTOR + MAP_OFFSET_X // - SPRITE_WIDTH * finalScale / 2;
+        const scaledY = y * SCALE_FACTOR + MAP_OFFSET_Y // - SPRITE_HEIGHT * finalScale - 12;
+
+        const drawX = scaledX - SPRITE_WIDTH * finalScale / 2;
+        const drawY = scaledY - SPRITE_HEIGHT * finalScale + 24;
+
+        // console.log(`Drawing ${this.name} at (${scaledX}, ${scaledY}), origin (${x}, ${y})`);
 
         ctx.drawImage(
             this.sprite,
@@ -156,16 +161,16 @@ export class Character {
             sourceY,
             SPRITE_WIDTH,
             SPRITE_HEIGHT,
-            scaledX,
-            scaledY,
+            drawX,
+            drawY,
             SPRITE_WIDTH * finalScale,
             SPRITE_HEIGHT * finalScale
         );
 
         // Draw the speech bubble if there's a message
         if (message) {
-            const bubbleX = scaledX + (SPRITE_WIDTH * finalScale) / 2;
-            const bubbleY = scaledY;
+            const bubbleX = drawX + (SPRITE_WIDTH * finalScale) / 2;
+            const bubbleY = drawY + 60;
             this.drawSpeechBubble(ctx, bubbleX, bubbleY, message);
         }
     }
@@ -176,13 +181,13 @@ export class Character {
 
     drawSpeechBubble(ctx: CanvasRenderingContext2D, x: number, y: number, message: string) {
         // Bubble styling constants
-        const padding = 30;
-        const maxWidth = 800;
-        const minWidth = 300;
-        const lineHeight = 40;
-        const fontSize = 28;
-        const borderRadius = 15;
-        const tailHeight = 25;
+        const padding = 16;
+        const maxWidth = 256;
+        const minWidth = 128;
+        const lineHeight = 16;
+        const fontSize = 16;
+        const borderRadius = 12;
+        const tailHeight = 16;
 
         // Set text properties with bold font for better legibility
         ctx.font = `bold ${fontSize}px Arial`;
@@ -248,7 +253,9 @@ export class Character {
         let tailPosition: 'top' | 'bottom' = 'bottom';
         if (bubbleY < margin) {
             // Place bubble below character if too high
-            bubbleY = y + SPRITE_HEIGHT * SCALE_FACTOR + tailHeight;
+            const finalScale = SCALE_FACTOR * CHARACTER_SCALE;
+
+            bubbleY = y + SPRITE_HEIGHT * finalScale + tailHeight;
             tailPosition = 'top';
         }
 
@@ -277,38 +284,59 @@ export class Character {
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 2;
 
+        const tailX = Math.min(Math.max(x, bubbleX + 20), bubbleX + bubbleWidth - 20);
+
         // Draw rounded rectangle
         ctx.beginPath();
+        // left top corner
         ctx.moveTo(bubbleX + borderRadius, bubbleY);
+        // top line (tail)
+        if (tailPosition === 'top') {
+            ctx.lineTo(tailX - 10, bubbleY);
+            ctx.lineTo(tailX, bubbleY - tailHeight);
+            ctx.lineTo(tailX + 10, bubbleY);
+        }
         ctx.lineTo(bubbleX + bubbleWidth - borderRadius, bubbleY);
+        // right top corner
         ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY, bubbleX + bubbleWidth, bubbleY + borderRadius);
+        // right line
         ctx.lineTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight - borderRadius);
+        // right bottom corner
         ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight, bubbleX + bubbleWidth - borderRadius, bubbleY + bubbleHeight);
+        // bottom line (tail)
+        if (tailPosition === 'bottom') {
+            ctx.lineTo(tailX + 10, bubbleY + bubbleHeight);
+            ctx.lineTo(tailX, bubbleY + bubbleHeight + tailHeight);
+            ctx.lineTo(tailX - 10, bubbleY + bubbleHeight);
+        }
         ctx.lineTo(bubbleX + borderRadius, bubbleY + bubbleHeight);
+        // left bottom corner
         ctx.quadraticCurveTo(bubbleX, bubbleY + bubbleHeight, bubbleX, bubbleY + bubbleHeight - borderRadius);
+        // left line
         ctx.lineTo(bubbleX, bubbleY + borderRadius);
+        // left top corner
         ctx.quadraticCurveTo(bubbleX, bubbleY, bubbleX + borderRadius, bubbleY);
+
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
         // Draw tail
-        ctx.beginPath();
-        const tailX = Math.min(Math.max(x, bubbleX + 20), bubbleX + bubbleWidth - 20);
-
-        if (tailPosition === 'bottom') {
-            ctx.moveTo(tailX - 10, bubbleY + bubbleHeight);
-            ctx.lineTo(tailX, bubbleY + bubbleHeight + tailHeight);
-            ctx.lineTo(tailX + 10, bubbleY + bubbleHeight);
-        } else {
-            ctx.moveTo(tailX - 10, bubbleY);
-            ctx.lineTo(tailX, bubbleY - tailHeight);
-            ctx.lineTo(tailX + 10, bubbleY);
-        }
-
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        // ctx.beginPath();
+        //
+        // if (tailPosition === 'bottom') {
+        //     ctx.moveTo(tailX - 10, bubbleY + bubbleHeight);
+        //     ctx.lineTo(tailX, bubbleY + bubbleHeight + tailHeight);
+        //     ctx.lineTo(tailX + 10, bubbleY + bubbleHeight);
+        // } else {
+        //     ctx.moveTo(tailX - 10, bubbleY);
+        //     ctx.lineTo(tailX, bubbleY - tailHeight);
+        //     ctx.lineTo(tailX + 10, bubbleY);
+        // }
+        //
+        // ctx.closePath();
+        // ctx.fill();
+        // ctx.stroke();
 
         // Draw text
         ctx.fillStyle = 'black';

@@ -18,7 +18,7 @@ import {
     MAP_OFFSET_Y,
     PLAYER_MOVE_SPEED,
     SCALE_FACTOR, SPRITE_HEIGHT, SPRITE_WIDTH,
-    WALKABLE_AREAS
+    // WALKABLE_AREAS
 } from '@/utils/properties';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import AgentDetails from './AgentDetails';
@@ -28,14 +28,15 @@ import Chat from './Chat';
 import { God } from './God';
 import NotificationBoard from './NotificationBoard';
 import RecursiveChat from './RecursiveChat';
+import {InitialPlayerStates} from "@/utils/data";
 
 // Function to get a random integer between min and max
-function getRandomInt(min: number, max: number) {
+export function getRandomInt(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 // Interface for player state
-interface PlayerState {
+export interface PlayerState {
     x: number;
     y: number;
     direction: 'up' | 'down' | 'left' | 'right';
@@ -51,8 +52,8 @@ interface PlayerState {
 
 // Helper function to check if two bounds overlap
 function isOverlapping(
-    bounds1: { x: number; y: number; width: number; height: number; },
-    bounds2: { x: number; y: number; width: number; height: number; }
+  bounds1: { x: number; y: number; width: number; height: number; },
+  bounds2: { x: number; y: number; width: number; height: number; }
 ): boolean {
     const center1 = {
         x: bounds1.x + bounds1.width / 2,
@@ -77,10 +78,10 @@ function isOverlapping(
 
 // Function to check if a character would collide with others at the given position
 function checkCharacterCollision(
-    playerStates: PlayerState[],
-    characterIndex: number,
-    newX: number,
-    newY: number
+  playerStates: PlayerState[],
+  characterIndex: number,
+  newX: number,
+  newY: number
 ): boolean {
     // Increase collision box to 95% of character size (up from 90%)
     const width = SPRITE_WIDTH * SCALE_FACTOR * 0.95;
@@ -126,10 +127,10 @@ function isWithinCanvasBounds(x: number, y: number): boolean {
     const buffer = 50; // 50px buffer from edges
 
     return (
-        scaledX >= buffer &&
-        scaledX + characterWidth <= CANVAS_WIDTH - buffer &&
-        scaledY >= buffer &&
-        scaledY + characterHeight <= CANVAS_HEIGHT - buffer
+      scaledX >= buffer &&
+      scaledX + characterWidth <= CANVAS_WIDTH - buffer &&
+      scaledY >= buffer &&
+      scaledY + characterHeight <= CANVAS_HEIGHT - buffer
     )
 }
 
@@ -137,6 +138,10 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
     // Refs
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const mapRef = useRef<HTMLImageElement | null>(null);
+    // Map Pass
+    const [mapPass, setMapPass] = useState<boolean[][]>(null);
+
+    const mapPassRef = useRef<HTMLImageElement | null>(null);
     const lastRenderTimeRef = useRef<number>(0);
     const sessionId = useRef<string>(crypto.randomUUID()).current;
     // State variables
@@ -156,6 +161,7 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
         characterName: string;
         address?: `0x${string}`;
     }[]>([]);
+
 
     // Store Character instances in a ref to ensure they are only created once
     const charactersRef = useRef<Character[] | null>(null);
@@ -262,7 +268,6 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
         const map = mapRef.current;
         const characters = charactersRef.current;
 
-
         if (!canvas || !map || !characters || playerStates.length === 0) {
             if (!canvas) console.debug("Missing canvas");
             if (!map) console.debug("Missing map");
@@ -278,32 +283,36 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+        // Fit all
+        // const ratio = CANVAS_HEIGHT / map.height // Math.min(CANVAS_WIDTH / map.width, CANVAS_HEIGHT / map.height)
+        // console.debug("ratio", ratio, map);
+
         // Draw the office map background to fill the entire canvas
         ctx.drawImage(
-            map,
-            0,  // source x
-            0,  // source y
-            map.width,  // source width
-            map.height, // source height
-            0,  // destination x
-            0,  // destination y
-            CANVAS_WIDTH,  // destination width - fill entire canvas width
-            CANVAS_HEIGHT  // destination height - fill entire canvas height
+          map,
+          0,  // source x
+          0,  // source y
+          map.width,  // source width
+          map.height, // source height
+          0,  // destination x
+          0,  // destination y
+          CANVAS_WIDTH,  // destination width - fill entire canvas width
+          CANVAS_HEIGHT  // destination height - fill entire canvas height
         );
 
         // Draw walkable areas for debugging
-        if (DEBUG_WALKABLE_AREAS) {
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 2;
-            WALKABLE_AREAS.forEach((area) => {
-                ctx.strokeRect(
-                    area.x * SCALE_FACTOR + MAP_OFFSET_X,
-                    area.y * SCALE_FACTOR + MAP_OFFSET_Y,
-                    area.width * SCALE_FACTOR,
-                    area.height * SCALE_FACTOR
-                );
-            });
-        }
+        // if (DEBUG_WALKABLE_AREAS) {
+        //     ctx.strokeStyle = 'red';
+        //     ctx.lineWidth = 2;
+        //     WALKABLE_AREAS.forEach((area) => {
+        //         ctx.strokeRect(
+        //           area.x * SCALE_FACTOR + MAP_OFFSET_X,
+        //           area.y * SCALE_FACTOR + MAP_OFFSET_Y,
+        //           area.width * SCALE_FACTOR,
+        //           area.height * SCALE_FACTOR
+        //         );
+        //     });
+        // }
 
         // Draw each character
         characters.forEach((character, index) => {
@@ -314,13 +323,13 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
             }
 
             character.draw(
-                ctx,
-                playerState.x,
-                playerState.y,
-                playerState.direction,
-                animationFrame,
-                playerState.isMoving,
-                playerState.message
+              ctx,
+              playerState.x,
+              playerState.y,
+              playerState.direction,
+              animationFrame,
+              playerState.isMoving,
+              playerState.message
             );
 
             const characterX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X;
@@ -345,10 +354,10 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                 ctx.strokeStyle = 'yellow';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(
-                    characterX,
-                    characterY,
-                    characterWidth,
-                    characterHeight
+                  characterX,
+                  characterY,
+                  characterWidth,
+                  characterHeight
                 );
             }
         });
@@ -363,19 +372,19 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                 // Draw character's collision box
                 ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
                 ctx.strokeRect(
-                    state.x * SCALE_FACTOR + MAP_OFFSET_X,
-                    state.y * SCALE_FACTOR + MAP_OFFSET_Y,
-                    width,
-                    height
+                  state.x * SCALE_FACTOR + MAP_OFFSET_X,
+                  state.y * SCALE_FACTOR + MAP_OFFSET_Y,
+                  width,
+                  height
                 );
 
                 // Draw buffer zone
                 ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
                 ctx.strokeRect(
-                    state.x * SCALE_FACTOR + MAP_OFFSET_X - buffer,
-                    state.y * SCALE_FACTOR + MAP_OFFSET_Y - buffer,
-                    width + buffer * 2,
-                    height + buffer * 2
+                  state.x * SCALE_FACTOR + MAP_OFFSET_X - buffer,
+                  state.y * SCALE_FACTOR + MAP_OFFSET_Y - buffer,
+                  width + buffer * 2,
+                  height + buffer * 2
                 );
             });
         }
@@ -414,171 +423,105 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                 console.debug("Initializing characters...");
                 charactersRef.current = [
                     new Character(
-                        0,
-                        'Jacob',
-                        '/characters.png',
-                        () => {
-                            if (mounted) drawGameRef.current();
-                        },
-                        (index, message) => {
-                            handleCharacterMessageRef.current(index, message);
-                        },
-                        (index, error) => {
-                            handleCharacterErrorRef.current(index, error);
-                        },
-                        sessionId,
-                        userId
+                      0,
+                      'Jacob',
+                      '/characters.png',
+                      () => {
+                          if (mounted) drawGameRef.current();
+                      },
+                      (index, message) => {
+                          handleCharacterMessageRef.current(index, message);
+                      },
+                      (index, error) => {
+                          handleCharacterErrorRef.current(index, error);
+                      },
+                      sessionId,
+                      userId
                     ),
                     new Character(
-                        1,
-                        'Osaka',
-                        '/characters.png',
-                        () => {
-                            if (mounted) drawGameRef.current();
-                        },
-                        (index, message) => {
-                            handleCharacterMessageRef.current(index, message);
-                        },
-                        (index, error) => {
-                            handleCharacterErrorRef.current(index, error);
-                        },
-                        sessionId,
-                        userId
+                      1,
+                      'Osaka',
+                      '/characters.png',
+                      () => {
+                          if (mounted) drawGameRef.current();
+                      },
+                      (index, message) => {
+                          handleCharacterMessageRef.current(index, message);
+                      },
+                      (index, error) => {
+                          handleCharacterErrorRef.current(index, error);
+                      },
+                      sessionId,
+                      userId
                     ),
                     new Character(
-                        2,
-                        'Satan',
-                        '/characters.png',
-                        () => {
-                            if (mounted) drawGameRef.current();
-                        },
-                        (index, message) => {
-                            handleCharacterMessageRef.current(index, message);
-                        },
-                        (index, error) => {
-                            handleCharacterErrorRef.current(index, error);
-                        },
-                        sessionId,
-                        userId
+                      2,
+                      'Satan',
+                      '/characters.png',
+                      () => {
+                          if (mounted) drawGameRef.current();
+                      },
+                      (index, message) => {
+                          handleCharacterMessageRef.current(index, message);
+                      },
+                      (index, error) => {
+                          handleCharacterErrorRef.current(index, error);
+                      },
+                      sessionId,
+                      userId
                     ),
                     new Character(
-                        3,
-                        'Winky',
-                        '/characters.png',
-                        () => {
-                            if (mounted) drawGameRef.current();
-                        },
-                        (index, message) => {
-                            handleCharacterMessageRef.current(index, message);
-                        },
-                        (index, error) => {
-                            handleCharacterErrorRef.current(index, error);
-                        },
-                        sessionId,
-                        userId
+                      3,
+                      'Winky',
+                      '/characters.png',
+                      () => {
+                          if (mounted) drawGameRef.current();
+                      },
+                      (index, message) => {
+                          handleCharacterMessageRef.current(index, message);
+                      },
+                      (index, error) => {
+                          handleCharacterErrorRef.current(index, error);
+                      },
+                      sessionId,
+                      userId
                     ),
                     new Character(
-                        4,
-                        'Mirco',
-                        '/characters.png',
-                        () => {
-                            if (mounted) drawGameRef.current();
-                        },
-                        (index, message) => {
-                            handleCharacterMessageRef.current(index, message);
-                        },
-                        (index, error) => {
-                            handleCharacterErrorRef.current(index, error);
-                        },
-                        sessionId,
-                        userId
+                      4,
+                      'Mirco',
+                      '/characters.png',
+                      () => {
+                          if (mounted) drawGameRef.current();
+                      },
+                      (index, message) => {
+                          handleCharacterMessageRef.current(index, message);
+                      },
+                      (index, error) => {
+                          handleCharacterErrorRef.current(index, error);
+                      },
+                      sessionId,
+                      userId
                     ),
                 ];
                 // Initialize God and store in ref
                 godRef.current = new God(
-                    (message) => {
-                        console.log(`God received message: ${JSON.stringify(message)}`);
-                        handleGodMessageRef.current(message);
-                    },
-                    (error) => {
-                        console.error(`God error: ${JSON.stringify(error)}`);
-                        handleGodErrorRef.current(error);
-                    },
-                    sessionId,
-                    userId,
-                    walletAddress,
-                    chatMode
+                  (message) => {
+                      console.log(`God received message: ${JSON.stringify(message)}`);
+                      handleGodMessageRef.current(message);
+                  },
+                  (error) => {
+                      console.error(`God error: ${JSON.stringify(error)}`);
+                      handleGodErrorRef.current(error);
+                  },
+                  sessionId,
+                  userId,
+                  walletAddress,
+                  chatMode
                 );
             }
 
             // Initialize player states
-            const initialPlayerStates: PlayerState[] = [
-                {
-                    x: -400,
-                    y: 600,
-                    direction: 'down',
-                    isMoving: false,
-                    message: null,
-                    ai: {
-                        action: 'paused',
-                        actionEndTime:
-                            Date.now() +
-                            getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX),
-                    },
-                },
-                {
-                    x: 0,
-                    y: 600,
-                    direction: 'down',
-                    isMoving: false,
-                    message: null,
-                    ai: {
-                        action: 'paused',
-                        actionEndTime:
-                            Date.now() +
-                            getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX),
-                    },
-                },
-                {
-                    x: 400,
-                    y: 600,
-                    direction: 'down',
-                    isMoving: false,
-                    message: null,
-                    ai: {
-                        action: 'paused',
-                        actionEndTime:
-                            Date.now() +
-                            getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX),
-                    },
-                },
-                {
-                    x: 800,
-                    y: 600,
-                    direction: 'down',
-                    isMoving: false,
-                    message: null,
-                    ai: {
-                        action: 'paused',
-                        actionEndTime:
-                            Date.now() +
-                            getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX),
-                    },
-                },
-                {
-                    x: 1200,
-                    y: 600,
-                    direction: 'down',
-                    isMoving: false,
-                    message: null,
-                    ai: {
-                        action: 'paused',
-                        actionEndTime:
-                            Date.now() +
-                            getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX),
-                    },
-                }
-            ];
+            const initialPlayerStates: PlayerState[] = InitialPlayerStates
 
             // Load the map image
             const mapImage = new Image();
@@ -593,11 +536,56 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                 };
             });
 
+            const mapPassImage = new Image();
+            mapPassImage.src = '/industry_office_map_pass.jpg';
+            await new Promise((resolve, reject) => {
+                mapPassImage.onload = () => {
+                    resolve(null);
+                };
+                mapPassImage.onerror = (error) => {
+                    console.error("Failed to load map pass image:", error);
+                    reject(error);
+                };
+            });
+
+            const extractMapPass = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = mapPassImage.naturalWidth;
+                canvas.height = mapPassImage.naturalHeight;
+                ctx.drawImage(mapPassImage, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+
+                const map = [];
+                for (let y = 0; y < canvas.height; y++) {
+                    const row = [];
+                    for (let x = 0; x < canvas.width; x++) {
+                        const index = (y * canvas.width + x) * 4;
+                        const r = data[index];
+                        const g = data[index + 1];
+                        const b = data[index + 2];
+                        const isWalkable = r === 255 && g === 255 && b === 255;
+                        row.push(isWalkable);
+                    }
+                    map.push(row);
+                }
+
+                console.debug("Map pass extracted:", map);
+                setMapPass(map);
+            };
+
             if (mounted) {
                 setPlayerStates(initialPlayerStates);
                 mapRef.current = mapImage;
+                mapPassRef.current = mapPassImage;
+                extractMapPass();
+
                 setIsInitialized(true);
 
+                console.debug("Game initialized!");
             }
         };
 
@@ -626,32 +614,32 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
     // Initialize AI states for uncontrolled characters
     useEffect(() => {
         setPlayerStates((prevStates) =>
-            prevStates.map((state, index) => {
-                if (
-                    controlledCharacterIndex === null ||
-                    index !== controlledCharacterIndex
-                ) {
-                    if (!state.ai) {
-                        return {
-                            ...state,
-                            ai: {
-                                action: 'paused',
-                                actionEndTime:
-                                    Date.now() +
-                                    getRandomInt(
-                                        AI_PAUSE_DURATION_MIN,
-                                        AI_PAUSE_DURATION_MAX
-                                    ),
-                            },
-                        };
-                    }
-                } else if (index === controlledCharacterIndex && state.ai) {
-                    // Remove AI state from the newly controlled character
-                    const { ai: _unused, ...rest } = state;
-                    return rest;
-                }
-                return state;
-            })
+          prevStates.map((state, index) => {
+              if (
+                controlledCharacterIndex === null ||
+                index !== controlledCharacterIndex
+              ) {
+                  if (!state.ai) {
+                      return {
+                          ...state,
+                          ai: {
+                              action: 'paused',
+                              actionEndTime:
+                                Date.now() +
+                                getRandomInt(
+                                  AI_PAUSE_DURATION_MIN,
+                                  AI_PAUSE_DURATION_MAX
+                                ),
+                          },
+                      };
+                  }
+              } else if (index === controlledCharacterIndex && state.ai) {
+                  // Remove AI state from the newly controlled character
+                  const { ai: _unused, ...rest } = state;
+                  return rest;
+              }
+              return state;
+          })
         );
     }, [controlledCharacterIndex]);
 
@@ -675,14 +663,14 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                             // Start moving
                             playerState.ai.action = 'moving';
                             playerState.ai.actionEndTime =
-                                Date.now() + getRandomInt(AI_MOVE_DURATION_MIN, AI_MOVE_DURATION_MAX);
+                              Date.now() + getRandomInt(AI_MOVE_DURATION_MIN, AI_MOVE_DURATION_MAX);
                             playerState.direction = DIRECTIONS[getRandomInt(0, DIRECTIONS.length - 1)];
                             playerState.isMoving = true;
                         } else {
                             // Pause
                             playerState.ai.action = 'paused';
                             playerState.ai.actionEndTime =
-                                Date.now() + getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX);
+                              Date.now() + getRandomInt(AI_PAUSE_DURATION_MIN, AI_PAUSE_DURATION_MAX);
                             playerState.isMoving = false;
                             setAnimationFrame(0); // Reset animation frame
                         }
@@ -690,7 +678,7 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
                     if (playerState.ai.action === 'moving') {
                         const moveDistance = (AI_MOVE_SPEED / SCALE_FACTOR) *
-                            ((timestamp - lastRenderTimeRef.current) / FRAME_DURATION);
+                          ((timestamp - lastRenderTimeRef.current) / FRAME_DURATION);
                         let newX = playerState.x;
                         let newY = playerState.y;
 
@@ -715,9 +703,9 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
                         // Check both canvas bounds, walkable area, and character collisions
                         if (
-                            isWithinCanvasBounds(newX, newY) &&
-                            isWalkable(scaledNewX, scaledNewY) &&
-                            !checkCharacterCollision(newPlayerStates, index, newX, newY)
+                          isWithinCanvasBounds(newX, newY) &&
+                          isWalkable(scaledNewX, scaledNewY) &&
+                          !checkCharacterCollision(newPlayerStates, index, newX, newY)
                         ) {
                             playerState.x = newX;
                             playerState.y = newY;
@@ -808,9 +796,9 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
                 // Check both canvas bounds, walkable area, and character collisions
                 if (
-                    isWithinCanvasBounds(newX, newY) &&
-                    isWalkable(scaledNewX, scaledNewY) &&
-                    !checkCharacterCollision(newStates, controlledCharacterIndex, newX, newY)
+                  isWithinCanvasBounds(newX, newY) &&
+                  isWalkable(scaledNewX, scaledNewY) &&
+                  !checkCharacterCollision(newStates, controlledCharacterIndex, newX, newY)
                 ) {
                     playerState.x = newX;
                     playerState.y = newY;
@@ -880,10 +868,10 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
         const characterHeight = SPRITE_HEIGHT * SCALE_FACTOR;
 
         return (
-            x >= characterX &&
-            x <= characterX + characterWidth &&
-            y >= characterY &&
-            y <= characterY + characterHeight
+          x >= characterX &&
+          x <= characterX + characterWidth &&
+          y >= characterY &&
+          y <= characterY + characterHeight
         );
     };
 
@@ -978,28 +966,32 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
     // Function to check if a position is walkable
     const isWalkable = useCallback((x: number, y: number): boolean => {
-        // Adjust the check based on the scaled map
         const scaledX = (x - MAP_OFFSET_X) / SCALE_FACTOR;
         const scaledY = (y - MAP_OFFSET_Y) / SCALE_FACTOR;
 
-        return WALKABLE_AREAS.some(
-            (area) =>
-                scaledX >= area.x &&
-                scaledX < area.x + area.width &&
-                scaledY >= area.y &&
-                scaledY < area.y + area.height
-        );
-    }, []);
+        return mapPass[Math.floor(scaledY)]?.[Math.floor(scaledX)];
+        // // Adjust the check based on the scaled map
+        // const scaledX = (x - MAP_OFFSET_X) / SCALE_FACTOR;
+        // const scaledY = (y - MAP_OFFSET_Y) / SCALE_FACTOR;
+
+        // return WALKABLE_AREAS.some(
+        //   (area) =>
+        //     scaledX >= area.x &&
+        //     scaledX < area.x + area.width &&
+        //     scaledY >= area.y &&
+        //     scaledY < area.y + area.height
+        // );
+    }, [mapPass]);
 
     // Compute controlled character's position for the input field
     const controlledPlayerState =
-        controlledCharacterIndex !== null ? playerStates[controlledCharacterIndex] : null;
+      controlledCharacterIndex !== null ? playerStates[controlledCharacterIndex] : null;
     const controlledCharacterX = controlledPlayerState
-        ? controlledPlayerState.x * SCALE_FACTOR + MAP_OFFSET_X
-        : 0;
+      ? controlledPlayerState.x * SCALE_FACTOR + MAP_OFFSET_X
+      : 0;
     const controlledCharacterY = controlledPlayerState
-        ? controlledPlayerState.y * SCALE_FACTOR + MAP_OFFSET_Y
-        : 0;
+      ? controlledPlayerState.y * SCALE_FACTOR + MAP_OFFSET_Y
+      : 0;
     const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
 
     // Function to send a message to all characters
@@ -1024,86 +1016,93 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
     // Return statement with conditional rendering
     return (
-        <div className="relative flex flex-col md:flex-row gap-4 h-[calc(100vh-5rem)] max-h-[calc(100vh-7rem)]">
-            {/* Render CharacterSelect when isOpen is true */}
-            {isOpen && <CharacterSelect />}
+      <>
+          <div className="absolute w-full h-full left-0 top-0 z-[-10] flex justify-center items-center"
+               style={{ background: "#292B45" }}>
+              {!isInitialized ? (
+                <div>Loading...</div>
+              ) : (
+                <>
+                    <canvas
+                      ref={canvasRef}
+                      width={CANVAS_WIDTH}
+                      height={CANVAS_HEIGHT}
+                      onMouseMove={handleMouseMove}
+                      onClick={handleClick}
+                      className="object-fill"
+                      style={{
+                          marginTop: '4rem',
+                          width: 'max-content',
+                          height: 'max-content'
+                      }}
+                    />
+                    {isInputActive && controlledPlayerState && (
+                      <input
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={handleInputKeyDown}
+                        style={{
+                            position: 'absolute',
+                            left: `${controlledCharacterX + characterWidth / 2}px`,
+                            top: `${controlledCharacterY - 30}px`,
+                            transform: 'translateX(-50%)',
+                            zIndex: 10,
+                        }}
+                        autoFocus
+                      />
+                    )}
+                </>
+              )}
+          </div>
+          <div className="relative flex flex-col md:flex-row gap-4 h-[calc(100vh-5rem)] max-h-[calc(100vh-7rem)] justify-between">
 
-            {/* Left Column - RecursiveChat and Chat */}
-            <div className="hidden md:flex md:flex-col w-80 h-full gap-4">
-                <div className="h-auto">
-                    <RecursiveChat chatMode={chatMode} setChatMode={setChatMode} />
-                </div>
-                <div className="flex-1 overflow-hidden rounded-lg">
-                    <Chat
+              {/* Render CharacterSelect when isOpen is true */}
+              {isOpen && <CharacterSelect />}
+
+              {/* Left Column - RecursiveChat and Chat */}
+              <div className="hidden md:flex md:flex-col w-80 h-full gap-4">
+                  <div className="h-auto">
+                      <RecursiveChat chatMode={chatMode} setChatMode={setChatMode} />
+                  </div>
+                  <div className="flex-1 overflow-hidden rounded-lg">
+                      <Chat
                         messages={chatMessages}
                         onSendMessage={handleGlobalMessage}
                         disabled={!isInitialized}
-                    />
-                </div>
-            </div>
+                      />
+                  </div>
+              </div>
 
-            {/* Middle Column - Game Canvas */}
-            <div className="relative flex-1 order-first md:order-none h-full flex items-center justify-center overflow-hidden rounded-lg">
-                {!isInitialized ? (
-                    <div>Loading...</div>
-                ) : (
-                    <>
-                        <canvas
-                            ref={canvasRef}
-                            width={CANVAS_WIDTH}
-                            height={CANVAS_HEIGHT}
-                            onMouseMove={handleMouseMove}
-                            onClick={handleClick}
-                            className="max-w-full max-h-full object-fill"
-                            style={{
-                                width: 'auto',
-                                height: '100%'
-                            }}
-                        />
-                        {isInputActive && controlledPlayerState && (
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={handleInputKeyDown}
-                                style={{
-                                    position: 'absolute',
-                                    left: `${controlledCharacterX + characterWidth / 2}px`,
-                                    top: `${controlledCharacterY - 30}px`,
-                                    transform: 'translateX(-50%)',
-                                    zIndex: 10,
-                                }}
-                                autoFocus
-                            />
-                        )}
-                    </>
-                )}
-            </div>
+              {/* Middle Column - Game Canvas */}
+              {/*<div className="relative flex-1 order-first md:order-none h-full flex items-center justify-center overflow-hidden rounded-lg">*/}
+              {/*</div>*/}
 
-            {/* Right Column - Agent Details and Notifications */}
-            <div className="hidden md:block w-80 h-full space-y-4">
-                <div className="h-[28%] overflow-hidden rounded-lg">
-                    <AgentDetails
+              {/* Right Column - Agent Details and Notifications */}
+              <div className="hidden md:block w-80 h-full space-y-4">
+                  <div className="h-[28%] overflow-hidden rounded-lg">
+                      <AgentDetails
                         ens="agent.eth"
                         chain="Ethereum"
                         resources={["100 USDC", "2 NFTs", "1 Badge"]}
-                    />
-                </div>
-                <div className="h-[70%] overflow-hidden rounded-lg">
-                    <NotificationBoard notifications={notifications} />
-                </div>
-            </div>
+                      />
+                  </div>
+                  <div className="h-[70%] overflow-hidden rounded-lg">
+                      <NotificationBoard notifications={notifications} />
+                  </div>
+              </div>
 
-            {/* Mobile Chat and Notifications */}
-            <div className="md:hidden fixed bottom-4 left-4 right-4 flex gap-2">
-                <Chat
+              {/* Mobile Chat and Notifications */}
+              <div className="md:hidden fixed bottom-4 left-4 right-4 flex gap-2">
+                  <Chat
                     messages={chatMessages}
                     onSendMessage={handleGlobalMessage}
                     disabled={!isInitialized}
-                />
-                <NotificationBoard notifications={notifications} />
-            </div>
-        </div>
+                  />
+                  <NotificationBoard notifications={notifications} />
+              </div>
+          </div>
+      </>
     );
 };
 

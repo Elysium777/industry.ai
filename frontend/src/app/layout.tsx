@@ -38,36 +38,36 @@ export default function RootLayout({
           <div className="absolute inset-0 -z-10 h-full w-full bg-[#EAEBED] bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
         </div>
         <ClerkProvider>
-          <div className="mx-auto max-w-[1280px] h-screen overflow-hidden">
-            <Providers>
-              <CharacterSelectProvider>
-                <div className="flex justify-between items-center p-4">
-                  <div>
-                    <SignedOut>
-                      <SignInButton />
-                    </SignedOut>
-                    <SignedIn>
-                      <UserButton />
-                    </SignedIn>
-                  </div>
-                  <div className="absolute left-1/2 top-4 -translate-x-1/2">
-                    <div className="flex items-center justify-center">
-                      <Image
-                        src="/logo_industry.png"
-                        alt="Industry AI Logo"
-                        width={180}
-                        height={40}
-                        priority
-                      />
-                    </div>
-                  </div>
-                  <CreateCharacterButton />
+          <Providers>
+            <CharacterSelectProvider>
+              <div className="flex justify-between items-center p-4 bg-card/80 backdrop-blur-sm">
+                <div>
+                  <SignedOut>
+                    <SignInButton />
+                  </SignedOut>
+                  <SignedIn>
+                    <UserButton />
+                  </SignedIn>
                 </div>
-                <CharacterSelect />
+                <div className="absolute left-1/2 top-4 -translate-x-1/2">
+                  <div className="flex items-center justify-center">
+                    <Image
+                      src="/logo_industry.png"
+                      alt="Industry AI Logo"
+                      width={180}
+                      height={40}
+                      priority
+                    />
+                  </div>
+                </div>
+                <CreateCharacterButton />
+              </div>
+              <CharacterSelect />
+              <div className="mx-auto max-w-[calc(100vw-64px)] h-screen overflow-hidden">
                 {children}
-              </CharacterSelectProvider>
-            </Providers>
-          </div>
+              </div>
+            </CharacterSelectProvider>
+          </Providers>
         </ClerkProvider>
       </body>
     </html>
