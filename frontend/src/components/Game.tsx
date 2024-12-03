@@ -9,7 +9,7 @@ import {
     AI_PAUSE_DURATION_MIN,
     ANIMATION_FRAMES,
     CANVAS_HEIGHT,
-    CANVAS_WIDTH,
+    CANVAS_WIDTH, CHARACTER_SCALE,
     DEBUG_CHARACTER_SELECT_BOXES,
     DEBUG_WALKABLE_AREAS,
     DIRECTIONS,
@@ -329,37 +329,38 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
               playerState.direction,
               animationFrame,
               playerState.isMoving,
-              playerState.message
+              playerState.message,
+              (isHoveredIndex === index && !isInputActive) || controlledCharacterIndex === index
             );
 
-            const characterX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X;
-            const characterY = playerState.y * SCALE_FACTOR + MAP_OFFSET_Y;
-            const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
-            const characterHeight = SPRITE_HEIGHT * SCALE_FACTOR;
+            // const characterX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X;
+            // const characterY = playerState.y * SCALE_FACTOR + MAP_OFFSET_Y;
+            // const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
+            // const characterHeight = SPRITE_HEIGHT * SCALE_FACTOR;
 
-            // Draw the name above the character if hovered
-            if (isHoveredIndex === index && !isInputActive) {
-                ctx.fillStyle = 'white';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                const textX = characterX + characterWidth / 2;
-                const textY = characterY - 10;
-
-                ctx.fillText(character.name, textX, textY);
-            }
-
-            // Highlight the controlled character
-            if (controlledCharacterIndex !== null && controlledCharacterIndex === index && DEBUG_CHARACTER_SELECT_BOXES) {
-                ctx.strokeStyle = 'yellow';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(
-                  characterX,
-                  characterY,
-                  characterWidth,
-                  characterHeight
-                );
-            }
+            // // Draw the name above the character if hovered
+            // if (isHoveredIndex === index && !isInputActive) {
+            //     ctx.fillStyle = 'white';
+            //     ctx.font = '16px Arial';
+            //     ctx.textAlign = 'center';
+            //     ctx.textBaseline = 'bottom';
+            //     const textX = characterX + characterWidth / 2;
+            //     const textY = characterY - 10;
+            //
+            //     ctx.fillText(character.name, textX, textY);
+            // }
+            //
+            // // Highlight the controlled character
+            // if (controlledCharacterIndex !== null && controlledCharacterIndex === index && DEBUG_CHARACTER_SELECT_BOXES) {
+            //     ctx.strokeStyle = 'yellow';
+            //     ctx.lineWidth = 2;
+            //     ctx.strokeRect(
+            //       characterX,
+            //       characterY,
+            //       characterWidth,
+            //       characterHeight
+            //     );
+            // }
         });
 
         if (DEBUG_CHARACTER_SELECT_BOXES && ctx) {
@@ -862,16 +863,24 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
         const playerState = playerStates[characterIndex];
         if (!playerState) return false;
 
-        const characterX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X;
-        const characterY = playerState.y * SCALE_FACTOR + MAP_OFFSET_Y;
-        const characterWidth = SPRITE_WIDTH * SCALE_FACTOR;
-        const characterHeight = SPRITE_HEIGHT * SCALE_FACTOR;
+        const scaledX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X // - SPRITE_WIDTH * finalScale / 2;
+        const scaledY = playerState.y * SCALE_FACTOR + MAP_OFFSET_Y // - SPRITE_HEIGHT * finalScale - 12;
+
+        const finalScale = SCALE_FACTOR * CHARACTER_SCALE;
+
+        const drawX = scaledX - SPRITE_WIDTH * finalScale / 2;
+        const drawY = scaledY - SPRITE_HEIGHT * finalScale + 24;
+
+        // const characterX = playerState.x * SCALE_FACTOR + MAP_OFFSET_X;
+        // const characterY = playerState.y * SCALE_FACTOR + MAP_OFFSET_Y;
+        const characterWidth = SPRITE_WIDTH * finalScale;
+        const characterHeight = SPRITE_HEIGHT * finalScale;
 
         return (
-          x >= characterX &&
-          x <= characterX + characterWidth &&
-          y >= characterY &&
-          y <= characterY + characterHeight
+          x >= drawX &&
+          x <= drawX + characterWidth &&
+          y >= drawY &&
+          y <= drawY+ characterHeight
         );
     };
 
@@ -1016,7 +1025,8 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
 
     // Return statement with conditional rendering
     return (
-      <>
+      <div onMouseMove={handleMouseMove}
+           onClick={handleClick}>
           <div className="absolute w-full h-full left-0 top-0 z-[-10] flex justify-center items-center"
                style={{ background: "#292B45" }}>
               {!isInitialized ? (
@@ -1027,8 +1037,6 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                       ref={canvasRef}
                       width={CANVAS_WIDTH}
                       height={CANVAS_HEIGHT}
-                      onMouseMove={handleMouseMove}
-                      onClick={handleClick}
                       className="object-fill"
                       style={{
                           marginTop: '4rem',
@@ -1102,7 +1110,7 @@ const Game = ({ userId, walletAddress }: { userId: string, walletAddress: string
                   <NotificationBoard notifications={notifications} />
               </div>
           </div>
-      </>
+      </div>
     );
 };
 

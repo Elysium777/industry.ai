@@ -135,7 +135,8 @@ export class Character {
         direction: 'up' | 'down' | 'left' | 'right',
         animationFrame: number,
         isMoving: boolean,
-        message: string | null
+        message: string | null,
+        isHovered?: boolean
     ) {
         if (!this.spriteLoaded || !this.sprite) return;
 
@@ -155,23 +156,49 @@ export class Character {
 
         // console.log(`Drawing ${this.name} at (${scaledX}, ${scaledY}), origin (${x}, ${y})`);
 
-        ctx.drawImage(
-            this.sprite,
-            sourceX,
-            sourceY,
-            SPRITE_WIDTH,
-            SPRITE_HEIGHT,
-            drawX,
-            drawY,
-            SPRITE_WIDTH * finalScale,
-            SPRITE_HEIGHT * finalScale
-        );
+        if (isHovered) {
+            ctx.drawImage(
+              this.sprite,
+              sourceX,
+              sourceY,
+              SPRITE_WIDTH,
+              SPRITE_HEIGHT,
+              drawX - 4,
+              drawY - 4,
+              SPRITE_WIDTH * finalScale + 8,
+              SPRITE_HEIGHT * finalScale + 8
+            );
+        } else {
+            ctx.drawImage(
+              this.sprite,
+              sourceX,
+              sourceY,
+              SPRITE_WIDTH,
+              SPRITE_HEIGHT,
+              drawX,
+              drawY,
+              SPRITE_WIDTH * finalScale,
+              SPRITE_HEIGHT * finalScale
+            );
+        }
 
         // Draw the speech bubble if there's a message
         if (message) {
             const bubbleX = drawX + (SPRITE_WIDTH * finalScale) / 2;
             const bubbleY = drawY + 60;
             this.drawSpeechBubble(ctx, bubbleX, bubbleY, message);
+        }
+        if (isHovered) {
+            ctx.fillStyle = 'white';
+            // ctx.strokeStyle = 'black';
+            ctx.font = '18px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+
+            const textX = scaledX;
+            const textY = scaledY + 32;
+
+            ctx.fillText(this.name, textX, textY, SPRITE_WIDTH * finalScale);
         }
     }
 

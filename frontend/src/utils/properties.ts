@@ -10,7 +10,7 @@ export const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WSS_URL;
 // Map constants
 export const MAP_WIDTH = 2912;
 export const MAP_HEIGHT = 1632;
-export const DEBUG_WALKABLE_AREAS = true;
+export const DEBUG_WALKABLE_AREAS = false;
 export const DEBUG_CHARACTER_SELECT_BOXES = false;
 // export const WALKABLE_AREAS = [
 //     { x: -1500, y: 160, width: 3950, height: 440 },
